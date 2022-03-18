@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
+using Newtonsoft.Json;
 using System.Threading.Tasks;
 
 namespace ScratchPad3
@@ -11,8 +11,7 @@ namespace ScratchPad3
     public class HttpService
     {
         private readonly HttpClient _httpClient;
-        private JsonSerializerOptions defaultJsonSerializerOptions =>
-            new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
+
 
         public async Task<HttpResponseWrapper<T>> Get<T>(string url, bool includeToken = true)
         {
@@ -21,7 +20,7 @@ namespace ScratchPad3
 
             if (responseHTTP.IsSuccessStatusCode)
             {
-                var response = await Deserialize<T>(responseHTTP, defaultJsonSerializerOptions);
+                var response = await Deserialize<T>(responseHTTP);
                 return new HttpResponseWrapper<T>(response, true, responseHTTP);
             }
             else
@@ -30,10 +29,11 @@ namespace ScratchPad3
             }
         }
 
-        private async Task<T> Deserialize<T>(HttpResponseMessage httpResponse, JsonSerializerOptions options)
+        private async Task<T> Deserialize<T>(HttpResponseMessage httpResponse)
         {
             var responseString = await httpResponse.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(responseString, options);
+            return JsonConvert.DeserializeObject<T>(responseString);
+            //return JsonSerializer.DeserializeObject<T>(responseString);
         }
     }
 }
